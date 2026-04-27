@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        @apply scroll-smooth bg-zinc-950;
+    }
+
+    body {
+        @apply min-h-screen bg-zinc-950 font-sans text-white antialiased;
+        background-image:
+            radial-gradient(
+                circle at top,
+                rgba(214, 31, 105, 0.08),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at bottom right,
+                rgba(247, 147, 26, 0.08),
+                transparent 24%
+            );
+    }
+
+    * {
+        @apply border-zinc-800;
+    }
+
+    ::selection {
+        background: rgba(247, 147, 26, 0.35);
+        color: #ffffff;
+    }
+}
+
+@layer components {
+    .section-label {
+        @apply inline-flex items-center rounded-full border border-zinc-800 bg-zinc-900 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-zinc-300;
+    }
+
+    .paper-panel {
+        @apply rounded-[32px] border-2 border-zinc-900 bg-brand-paper text-zinc-950 shadow-panel;
+    }
+
+    .dark-panel {
+        @apply rounded-[32px] border border-zinc-800 bg-zinc-900/90 shadow-panel backdrop-blur;
+    }
+
+    .brand-button {
+        @apply inline-flex items-center justify-center rounded-lg border-2 border-orange-200 bg-orange-500 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:-translate-y-0.5 hover:bg-orange-400;
+    }
+
+    .ghost-button {
+        @apply inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-transparent px-5 py-3 text-sm font-semibold text-white transition hover:border-zinc-500 hover:bg-zinc-900;
+    }
+}
+
+@layer utilities {
+    .bg-grid-paper {
+        background-image:
+            linear-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+
+    .bg-grid-slate {
+        background-image:
+            linear-gradient(rgba(161, 161, 170, 0.12) 1px, transparent 1px),
+            linear-gradient(
+                90deg,
+                rgba(161, 161, 170, 0.12) 1px,
+                transparent 1px
+            );
+        background-size: 20px 20px;
+    }
+
+    .bg-grid-orange {
+        background-image:
+            linear-gradient(rgba(247, 147, 26, 0.18) 1px, transparent 1px),
+            linear-gradient(
+                90deg,
+                rgba(247, 147, 26, 0.18) 1px,
+                transparent 1px
+            );
+        background-size: 22px 22px;
+    }
+
+    .text-balance {
+        text-wrap: balance;
+    }
+}

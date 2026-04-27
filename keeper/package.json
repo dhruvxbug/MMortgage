@@ -1,0 +1,28 @@
+{
+  "name": "mezomortgage-keeper",
+  "version": "1.0.0",
+  "description": "Keeper bot for MezoMortgage — automates yield harvesting, installment releases, and liquidation monitoring",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "lint": "eslint 'src/**/*.ts'",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.7",
+    "@wormhole-foundation/sdk": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/node-cron": "^3.0.11",
+    "typescript": "^5.7.2",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

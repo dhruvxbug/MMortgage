@@ -1,0 +1,4 @@
+[
+  { "type": "function", "name": "latestPrice", "stateMutability": "view", "inputs": [], "outputs": [{"name":"price","type":"uint256"},{"name":"decimals","type":"uint8"},{"name":"timestamp","type":"uint256"}] },
+  { "type": "event", "name": "PriceUpdated", "inputs": [{"name":"price","type":"uint256","indexed":false},{"name":"timestamp","type":"uint256","indexed":false}] }
+]

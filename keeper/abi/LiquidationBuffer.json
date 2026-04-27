@@ -1,0 +1,7 @@
+[
+  { "type": "function", "name": "checkHealth", "stateMutability": "view", "inputs": [{"name":"vaultId","type":"uint256"}], "outputs": [{"name":"healthy","type":"bool"}] },
+  { "type": "function", "name": "triggerTopUp", "stateMutability": "nonpayable", "inputs": [{"name":"vaultId","type":"uint256"}], "outputs": [] },
+  { "type": "function", "name": "partialRepay", "stateMutability": "nonpayable", "inputs": [{"name":"vaultId","type":"uint256"},{"name":"amount","type":"uint256"}], "outputs": [] },
+  { "type": "function", "name": "setHealthThreshold", "stateMutability": "nonpayable", "inputs": [{"name":"thresholdBps","type":"uint256"}], "outputs": [] },
+  { "type": "event", "name": "TopUpTriggered", "inputs": [{"name":"vaultId","type":"uint256","indexed":true},{"name":"amount","type":"uint256","indexed":false}] }
+]

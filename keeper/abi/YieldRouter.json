@@ -1,0 +1,8 @@
+[
+  { "type": "function", "name": "depositToVault", "stateMutability": "nonpayable", "inputs": [{"name":"tokenId","type":"uint256"},{"name":"amount","type":"uint256"}], "outputs": [] },
+  { "type": "function", "name": "harvestAndRoute", "stateMutability": "nonpayable", "inputs": [{"name":"tokenId","type":"uint256"}], "outputs": [] },
+  { "type": "function", "name": "getAccruedYield", "stateMutability": "view", "inputs": [{"name":"tokenId","type":"uint256"}], "outputs": [{"name":"yieldAmount","type":"uint256"}] },
+  { "type": "function", "name": "getPendingInstallment", "stateMutability": "view", "inputs": [{"name":"tokenId","type":"uint256"}], "outputs": [{"name":"amount","type":"uint256"}] },
+  { "type": "function", "name": "getVaultApy", "stateMutability": "view", "inputs": [{"name":"tokenId","type":"uint256"}], "outputs": [{"name":"apyBps","type":"uint256"}] },
+  { "type": "event", "name": "YieldHarvested", "inputs": [{"name":"tokenId","type":"uint256","indexed":true},{"name":"yieldAmount","type":"uint256","indexed":false},{"name":"routedToEscrow","type":"uint256","indexed":false}] }
+]
