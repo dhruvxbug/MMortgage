@@ -17,7 +17,7 @@ const mezoTestnet: Chain = {
 export const chains = [mezoTestnet] as const;
 
 export const config = getDefaultConfig({
-  appName: "PeerPledge",
+  appName: "MezoMortgage",
   projectId:
     process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ??
     "da82adaa55c7e1ef57617ea0bdf7c8bf",
