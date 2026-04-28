@@ -241,6 +241,60 @@ contract MortgageVault is Ownable, Pausable, ReentrancyGuard {
         ratio = (collateralValueUSD * 1e18) / debt;
     }
 
+    /// @notice Return full position detail in a single call.
+    ///         Collateral ratio is returned in basis points (20000 = 200%).
+    ///         Escrow-related fields (propertyPrice, installmentsPaid,
+    ///         totalInstallments, isCrossChain, destinationChain) are reserved
+    ///         for future integration with EscrowController and are returned as
+    ///         zero/false/"" in this version.
+    /// @param positionId  Position to query
+    function getPosition(uint256 positionId)
+        external
+        view
+        returns (
+            uint256 collateralAmount,
+            uint256 borrowedMUSD,
+            uint256 ltvBps,
+            uint256 collateralRatioBps,
+            uint256 propertyPrice,
+            uint256 installmentsPaid,
+            uint256 totalInstallments,
+            address seller,
+            bool    isCrossChain,
+            string  memory destinationChain,
+            bool    active
+        )
+    {
+        Position storage pos = positions[positionId];
+        (uint256 btcPrice,) = btcOracle.latestAnswer();
+        uint256 collValueUSD = (pos.collateralBTC * btcPrice) / 1e18;
+        uint256 debt = pos.borrowedMUSD > pos.paidMUSD
+            ? pos.borrowedMUSD - pos.paidMUSD
+            : 0;
+
+        // LTV in bps: e.g. 5000 = 50%
+        ltvBps = collValueUSD > 0 ? (debt * BPS) / collValueUSD : 0;
+
+        // Collateral ratio in bps: e.g. 20000 = 200%
+        // (collValueUSD * 10_000) / debt  — both values are 18-decimal,
+        // the 1e18 factors cancel, leaving a pure ratio in basis-point units.
+        collateralRatioBps = debt > 0 ? (collValueUSD * BPS) / debt : type(uint256).max;
+
+        return (
+            pos.collateralBTC,
+            pos.borrowedMUSD,
+            ltvBps,
+            collateralRatioBps,
+            0,         // propertyPrice – tracked in EscrowController
+            0,         // installmentsPaid – tracked in EscrowController
+            0,         // totalInstallments – tracked in EscrowController
+            pos.owner, // seller slot repurposed for position owner
+            false,     // isCrossChain – tracked in EscrowController
+            "",        // destinationChain – tracked in EscrowController
+            pos.active
+        );
+    }
+
     /// @notice Return all position IDs owned by `owner`
     /// @param owner  Address to query
     function getPositionsByOwner(address owner) external view returns (uint256[] memory) {

@@ -44,8 +44,25 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
         uint256 remaining
     );
 
+    /// @notice Emitted when an installment is released to a cross-chain seller.
+    ///         The keeper bot listens for this event and triggers Wormhole NTT.
+    event CrossChainRelease(
+        uint256 indexed escrowId,
+        uint16  destinationChainId,
+        bytes32 destinationAddress,
+        uint256 amount
+    );
+
     /// @notice Emitted when the owner performs an emergency withdrawal
     event EmergencyWithdraw(uint256 indexed escrowId, address indexed to, uint256 amount);
+
+    /// @notice Emitted when cross-chain seller details are registered
+    event CrossChainSellerSet(
+        uint256 indexed escrowId,
+        uint16  destinationChainId,
+        bytes32 destinationAddress,
+        string  destinationChain
+    );
 
     // ─── Storage ─────────────────────────────────────────────────────────────
 
@@ -56,7 +73,14 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
         uint256 intervalSeconds;  // Seconds between installments (e.g. 30 days)
         uint256 balance;          // Remaining MUSD balance (18 dec)
         uint256 nextDue;          // Unix timestamp of the next installment
+        uint256 installmentsPaid; // Number of installments released so far
+        uint256 totalInstallments;// Total number of installments (amount / installmentAmt)
         bool    active;
+        // ── Cross-chain (Wormhole NTT) ────────────────────────────────────────
+        bool    isCrossChain;        // True if seller is on another chain
+        uint16  destinationChainId;  // Wormhole chain ID (e.g. 2 = Ethereum)
+        bytes32 destinationAddress;  // Seller address in Wormhole bytes32 encoding
+        string  destinationChain;    // Human-readable chain name (e.g. "Ethereum")
     }
 
     IERC20  public immutable musd;
@@ -106,13 +130,19 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
 
         escrowId = ++_escrowCounter;
         escrows[escrowId] = Escrow({
-            seller:          seller,
-            totalAmount:     amount,
-            installmentAmt:  installmentAmt,
-            intervalSeconds: intervalSeconds,
-            balance:         amount,
-            nextDue:         block.timestamp + intervalSeconds,
-            active:          true
+            seller:           seller,
+            totalAmount:      amount,
+            installmentAmt:   installmentAmt,
+            intervalSeconds:  intervalSeconds,
+            balance:          amount,
+            nextDue:          block.timestamp + intervalSeconds,
+            installmentsPaid: 0,
+            totalInstallments: installmentAmt > 0 ? amount / installmentAmt : 0,
+            active:           true,
+            isCrossChain:     false,
+            destinationChainId: 0,
+            destinationAddress: bytes32(0),
+            destinationChain:   ""
         });
 
         emit EscrowCreated(escrowId, seller, amount, installmentAmt, intervalSeconds);
@@ -137,11 +167,17 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
 
         e.balance   -= payout;
         e.nextDue   += e.intervalSeconds;
+        e.installmentsPaid += 1;
         if (e.balance == 0) e.active = false;
 
         musd.safeTransfer(e.seller, payout);
 
         emit InstallmentReleased(escrowId, e.seller, payout, e.balance);
+
+        // Signal keeper bot to trigger Wormhole NTT transfer
+        if (e.isCrossChain && e.destinationChainId != 0) {
+            emit CrossChainRelease(escrowId, e.destinationChainId, e.destinationAddress, payout);
+        }
     }
 
     /// @notice Emergency withdrawal by the owner (pauses escrow first)
@@ -164,6 +200,33 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
         emit EmergencyWithdraw(escrowId, to, amount);
     }
 
+    // ─── Cross-chain support ──────────────────────────────────────────────────
+
+    /// @notice Register (or update) cross-chain seller details for an escrow.
+    ///         Once set, `releaseInstallment` will emit a CrossChainRelease event
+    ///         that the keeper bot uses to trigger a Wormhole NTT transfer.
+    /// @param escrowId          Escrow to configure
+    /// @param chainId           Wormhole destination chain ID (e.g. 2 = Ethereum)
+    /// @param wormholeAddress   Seller's address encoded as bytes32
+    /// @param chainName         Human-readable chain name (e.g. "Ethereum", "Base")
+    function setCrossChainSeller(
+        uint256 escrowId,
+        uint16  chainId,
+        bytes32 wormholeAddress,
+        string calldata chainName
+    ) external onlyOwner {
+        Escrow storage e = escrows[escrowId];
+        if (!e.active)      revert EscrowNotActive(escrowId);
+        if (chainId == 0)   revert InvalidSeller();
+
+        e.isCrossChain       = true;
+        e.destinationChainId = chainId;
+        e.destinationAddress = wormholeAddress;
+        e.destinationChain   = chainName;
+
+        emit CrossChainSellerSet(escrowId, chainId, wormholeAddress, chainName);
+    }
+
     // ─── Views ────────────────────────────────────────────────────────────────
 
     /// @notice Return the full payment schedule info for an escrow
@@ -181,6 +244,36 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
     {
         Escrow storage e = escrows[escrowId];
         return (e.seller, e.balance, e.installmentAmt, e.nextDue, e.active);
+    }
+
+    /// @notice Return the extended payment schedule including cross-chain info
+    ///         and installment progress. Used by the frontend and keeper bot.
+    /// @param escrowId  Escrow to query
+    function getScheduleExtended(uint256 escrowId)
+        external
+        view
+        returns (
+            uint256 nextPaymentDue,
+            uint256 installmentAmount,
+            uint256 installmentsPaid,
+            uint256 totalInstallments,
+            uint256 escrowBalance,
+            address seller,
+            bool    isCrossChain,
+            string  memory destinationChain
+        )
+    {
+        Escrow storage e = escrows[escrowId];
+        return (
+            e.nextDue,
+            e.installmentAmt,
+            e.installmentsPaid,
+            e.totalInstallments,
+            e.balance,
+            e.seller,
+            e.isCrossChain,
+            e.destinationChain
+        );
     }
 
     // ─── Admin ────────────────────────────────────────────────────────────────
