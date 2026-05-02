@@ -18,6 +18,13 @@ contract EscrowControllerTest is Test {
     uint256 constant INSTALL = 93.75e18;    // $93.75/month net yield
     uint256 constant INTERVAL = 30 days;
 
+    event CrossChainRelease(
+        uint256 indexed escrowId,
+        uint16  destinationChainId,
+        bytes32 destinationAddress,
+        uint256 amount
+    );
+
     function setUp() public {
         musd   = new MockERC20("MUSD", "MUSD");
         vm.prank(owner);
@@ -127,17 +134,38 @@ contract EscrowControllerTest is Test {
     }
 
     function testReleaseInstallment_byCrossChain() public {
-        // Seller is on another chain — escrow itself doesn't distinguish;
-        // cross-chain transfer is handled by the keeper before calling release.
-        // This test validates the on-chain release mechanics still work.
         address crossChainSeller = makeAddr("crossChainSeller");
+        bytes32 destinationAddress = bytes32(uint256(uint160(crossChainSeller)));
 
         vm.startPrank(alice);
         musd.approve(address(escrow), TOTAL);
         uint256 id = escrow.createEscrow(crossChainSeller, TOTAL, INSTALL, INTERVAL);
         vm.stopPrank();
 
+        vm.prank(owner);
+        escrow.setCrossChainSeller(id, 2, destinationAddress);
+
+        (
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            bool isCrossChain,
+            uint16 destinationChainId,
+            bytes32 storedDestination,
+            string memory storedChainName
+        ) = escrow.getScheduleExtended(id);
+
+        assertTrue(isCrossChain, "cross-chain flag not set");
+        assertEq(destinationChainId, 2, "destination chain mismatch");
+        assertEq(storedDestination, destinationAddress, "destination address mismatch");
+        assertEq(storedChainName, "Ethereum", "destination chain name mismatch");
+
         vm.warp(block.timestamp + INTERVAL + 1);
+        vm.expectEmit(true, false, false, true);
+        emit CrossChainRelease(id, 2, destinationAddress, INSTALL);
         vm.prank(yieldRouter);
         escrow.releaseInstallment(id);
 

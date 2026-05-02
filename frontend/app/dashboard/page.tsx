@@ -19,6 +19,7 @@ import type {
   DashboardPosition,
 } from "@/app/dashboard/components/types";
 import WalletGate from "@/components/WalletGate";
+import WormholeConnectWidget from "@/components/WormholeConnectWidget";
 import {
   CONTRACT_ADDRESSES,
   escrowControllerAbi,
@@ -177,7 +178,7 @@ export default function DashboardPage() {
       {
         address: CONTRACT_ADDRESSES.escrowController,
         abi: escrowControllerAbi,
-        functionName: "getSchedule" as const,
+        functionName: "getScheduleExtended" as const,
         args: [tokenId] as const,
         chainId: chains[0].id,
       },
@@ -248,6 +249,11 @@ export default function DashboardPage() {
         paidCount,
         totalCount,
         escrowBalance,
+        scheduleSeller,
+        scheduleIsCrossChain,
+        ,
+        ,
+        scheduleDestinationChain,
       ] = scheduleResult.result as readonly [
         bigint,
         bigint,
@@ -256,8 +262,13 @@ export default function DashboardPage() {
         bigint,
         `0x${string}`,
         boolean,
+        number,
+        `0x${string}`,
         string,
       ];
+      const crossChain = scheduleIsCrossChain || isCrossChain;
+      const chainLabel =
+        crossChain ? scheduleDestinationChain || destinationChain : "Mezo";
       const monthlyYield = formatUnitsNumber(yieldResult.result as bigint) / 12;
       const monthlyPayment = formatUnitsNumber(installmentAmount);
       const nextPaymentDate = new Date(Number(nextPaymentDue) * 1000);
@@ -288,9 +299,9 @@ export default function DashboardPage() {
           year: "numeric",
         }),
         nextPaymentCountdown: `in ${countdownDays} days`,
-        sellerAddress: seller,
-        chainLabel: isCrossChain ? destinationChain : "Mezo",
-        crossChain: isCrossChain,
+        sellerAddress: scheduleSeller || seller,
+        chainLabel,
+        crossChain,
         totalPropertyPrice: formatUnitsNumber(propertyPrice),
         installmentsPaid: Number(installmentsPaid),
         totalInstallments: Number(totalInstallments),
@@ -308,6 +319,13 @@ export default function DashboardPage() {
       (tokenIds.length > 0 && onchainPositions.length === 0));
 
   const positions = usingDemoFallback ? [demoPosition] : onchainPositions;
+  const activeCrossChainPosition = positions.find(
+    (position) => position.crossChain,
+  );
+  const wormholeDestination =
+    activeCrossChainPosition?.chainLabel.toLowerCase().includes("base")
+      ? "Base"
+      : "Ethereum";
 
   const healthAlertPosition = positions.find(
     (position) => position.collateralRatio < 160,
@@ -436,6 +454,10 @@ export default function DashboardPage() {
                   onAction={openAction}
                 />
               ))}
+              <WormholeConnectWidget
+                isActive={Boolean(activeCrossChainPosition)}
+                destinationChain={wormholeDestination}
+              />
             </div>
           ) : null}
         </div>

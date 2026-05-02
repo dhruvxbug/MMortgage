@@ -24,6 +24,8 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
     error InstallmentNotDue(uint256 nextDue, uint256 current);
     error EscrowFullyPaid(uint256 escrowId);
     error InsufficientEscrowBalance(uint256 balance, uint256 required);
+    error InvalidDestinationChain(uint16 chainId);
+    error InvalidDestinationAddress();
 
     // ─── Events ───────────────────────────────────────────────────────────────
 
@@ -208,16 +210,38 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
     /// @param escrowId          Escrow to configure
     /// @param chainId           Wormhole destination chain ID (e.g. 2 = Ethereum)
     /// @param wormholeAddress   Seller's address encoded as bytes32
+    function setCrossChainSeller(
+        uint256 escrowId,
+        uint16  chainId,
+        bytes32 wormholeAddress
+    ) external onlyOwner nonReentrant {
+        _setCrossChainSeller(escrowId, chainId, wormholeAddress, _defaultChainName(chainId));
+    }
+
+    /// @notice Register (or update) cross-chain seller details with a custom chain label.
+    /// @param escrowId          Escrow to configure
+    /// @param chainId           Wormhole destination chain ID (e.g. 2 = Ethereum)
+    /// @param wormholeAddress   Seller's address encoded as bytes32
     /// @param chainName         Human-readable chain name (e.g. "Ethereum", "Base")
     function setCrossChainSeller(
         uint256 escrowId,
         uint16  chainId,
         bytes32 wormholeAddress,
         string calldata chainName
-    ) external onlyOwner {
+    ) external onlyOwner nonReentrant {
+        _setCrossChainSeller(escrowId, chainId, wormholeAddress, chainName);
+    }
+
+    function _setCrossChainSeller(
+        uint256 escrowId,
+        uint16  chainId,
+        bytes32 wormholeAddress,
+        string memory chainName
+    ) internal {
         Escrow storage e = escrows[escrowId];
-        if (!e.active)      revert EscrowNotActive(escrowId);
-        if (chainId == 0)   revert InvalidSeller();
+        if (!e.active) revert EscrowNotActive(escrowId);
+        if (chainId == 0) revert InvalidDestinationChain(chainId);
+        if (wormholeAddress == bytes32(0)) revert InvalidDestinationAddress();
 
         e.isCrossChain       = true;
         e.destinationChainId = chainId;
@@ -225,6 +249,12 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
         e.destinationChain   = chainName;
 
         emit CrossChainSellerSet(escrowId, chainId, wormholeAddress, chainName);
+    }
+
+    function _defaultChainName(uint16 chainId) internal pure returns (string memory) {
+        if (chainId == 2 || chainId == 10002) return "Ethereum";
+        if (chainId == 30 || chainId == 10004) return "Base";
+        return "Wormhole";
     }
 
     // ─── Views ────────────────────────────────────────────────────────────────
@@ -260,6 +290,8 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
             uint256 escrowBalance,
             address seller,
             bool    isCrossChain,
+            uint16  destinationChainId,
+            bytes32 destinationAddress,
             string  memory destinationChain
         )
     {
@@ -272,6 +304,8 @@ contract EscrowController is Ownable, Pausable, ReentrancyGuard {
             e.balance,
             e.seller,
             e.isCrossChain,
+            e.destinationChainId,
+            e.destinationAddress,
             e.destinationChain
         );
     }

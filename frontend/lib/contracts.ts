@@ -102,9 +102,21 @@ export const escrowControllerAbi = [
     inputs: [
       { name: "seller", type: "address" },
       { name: "amount", type: "uint256" },
-      { name: "schedule", type: "uint8" },
+      { name: "installmentAmt", type: "uint256" },
+      { name: "intervalSeconds", type: "uint256" },
     ],
     outputs: [{ name: "escrowId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "setCrossChainSeller",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "escrowId", type: "uint256" },
+      { name: "chainId", type: "uint16" },
+      { name: "wormholeAddress", type: "bytes32" },
+    ],
+    outputs: [],
   },
   {
     type: "function",
@@ -117,12 +129,15 @@ export const escrowControllerAbi = [
     type: "function",
     name: "emergencyWithdraw",
     stateMutability: "nonpayable",
-    inputs: [{ name: "tokenId", type: "uint256" }],
+    inputs: [
+      { name: "escrowId", type: "uint256" },
+      { name: "to", type: "address" },
+    ],
     outputs: [],
   },
   {
     type: "function",
-    name: "getSchedule",
+    name: "getScheduleExtended",
     stateMutability: "view",
     inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [
@@ -133,6 +148,8 @@ export const escrowControllerAbi = [
       { name: "escrowBalance", type: "uint256" },
       { name: "seller", type: "address" },
       { name: "isCrossChain", type: "bool" },
+      { name: "destinationChainId", type: "uint16" },
+      { name: "destinationAddress", type: "bytes32" },
       { name: "destinationChain", type: "string" },
     ],
   },

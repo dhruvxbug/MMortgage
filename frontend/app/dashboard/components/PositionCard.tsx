@@ -6,6 +6,7 @@ import type {
   DashboardAction,
   DashboardPosition,
 } from "@/app/dashboard/components/types";
+import CrossChainBadge from "@/components/CrossChainBadge";
 
 type PositionCardProps = {
   position: DashboardPosition;
@@ -154,9 +155,7 @@ export default function PositionCard({
                 <div className="mt-1 flex items-center gap-2 text-lg font-semibold text-white">
                   {position.chainLabel}
                   {position.crossChain ? (
-                    <span className="rounded-full border border-[#F7931A]/40 bg-[#F7931A]/10 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[#F7931A]">
-                      Wormhole
-                    </span>
+                    <CrossChainBadge chain={position.chainLabel} />
                   ) : null}
                 </div>
               </div>
