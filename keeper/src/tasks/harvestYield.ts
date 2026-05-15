@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { ethers } from "ethers";
-import { mortgageVault, yieldRouter } from "../lib/contracts.js";
-import { log } from "../lib/logger.js";
+import { mortgageVault, yieldRouter } from "../lib/contracts";
+import { log } from "../lib/logger";
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

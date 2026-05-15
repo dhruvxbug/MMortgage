@@ -11,16 +11,18 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "ethers": "^6.13.4",
-    "node-cron": "^3.0.3",
     "dotenv": "^16.4.7",
-    "@wormhole-foundation/sdk": "^1.13.0"
+    "ethers": "^6.13.4",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
     "@types/node": "^20.17.10",
     "@types/node-cron": "^3.0.11",
-    "typescript": "^5.7.2",
-    "ts-node": "^10.9.2"
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "eslint": "^8.57.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   },
   "engines": {
     "node": ">=20"

@@ -55,7 +55,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10">
-          <h2 className="text-[clamp(2rem,13vw,9rem)] font-bold leading-[0.9] tracking-tight text-transparent bg-gradient-to-b from-white-100 via-[#F7931A] to-[#8a4700] bg-clip-text [mask-image:linear-gradient(to_bottom,rgba(0,0,0,1)_0%,rgba(0,0,0,0.8)_68%,rgba(0,0,0,0.2)_100%)]">
+          <h2 className="text-[clamp(2rem,13vw,9rem)] font-bold leading-[0.9] tracking-tight text-white bg-gradient-to-b from-white-100 via-[#F7931A] to-[#8a4700] bg-clip-text [mask-image:linear-gradient(to_bottom,rgba(0,0,0,1)_0%,rgba(0,0,0,0.8)_68%,rgba(0,0,0,0.2)_100%)]">
             mezoMortgage
           </h2>
         </div>

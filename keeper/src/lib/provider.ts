@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { log } from "./logger.js";
+import { log } from "./logger";
 
 const HTTP_URL = process.env.SPECTRUM_NODES_HTTP_URL;
 const WS_URL = process.env.SPECTRUM_NODES_WS_URL;
@@ -117,7 +117,7 @@ export async function shutdownProviders(): Promise<void> {
 
   if (wsProvider) {
     try {
-      wsProvider.destroy();
+      await wsProvider.destroy();
       log.info("WebSocket provider closed.");
     } catch (error) {
       log.warn("Error while closing WebSocket provider:", error);

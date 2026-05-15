@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { signer } from "./contracts.js";
-import { log } from "./logger.js";
+import { signer } from "./contracts";
+import { log } from "./logger";
 
 export interface BridgeResult {
   txHash: string;
@@ -20,6 +20,35 @@ type RetryItem = {
   recipient: string;
   destination: BridgeDestination;
   attempts: number;
+};
+
+type SubmittedTransaction = {
+  hash: string;
+  wait: () => Promise<ethers.TransactionReceipt | null>;
+};
+
+type Erc20Contract = ethers.Contract & {
+  allowance(owner: string, spender: string): Promise<bigint>;
+  approve(spender: string, amount: bigint): Promise<SubmittedTransaction>;
+};
+
+type NttManagerContract = ethers.Contract & {
+  quoteDeliveryPrice(
+    recipientChain: number,
+    transceiverInstructions: string,
+  ): Promise<[bigint[], bigint]>;
+  nextMessageSequence(): Promise<bigint>;
+  getFunction(
+    name: "transfer(uint256,uint16,bytes32,bytes32,bool,bytes)",
+  ): (
+    amount: bigint,
+    recipientChain: number,
+    recipient: string,
+    refundAddress: string,
+    shouldQueue: boolean,
+    transceiverInstructions: string,
+    overrides: { value: bigint },
+  ) => Promise<SubmittedTransaction>;
 };
 
 const NTT_MANAGER_ABI = [
@@ -93,11 +122,11 @@ function getEstimatedDeliveryTime(destination: BridgeDestination): string {
 }
 
 async function ensureAllowance(
-  token: ethers.Contract,
+  token: Erc20Contract,
   spender: string,
   amount: bigint,
 ): Promise<void> {
-  const allowance = (await token.allowance(signer.address, spender)) as bigint;
+  const allowance = await token.allowance(signer.address, spender);
   if (allowance >= amount) {
     return;
   }
@@ -158,8 +187,16 @@ async function executeBridge(
 ): Promise<BridgeResult> {
   const managerAddress = requireEnv("WORMHOLE_NTT_MANAGER_ADDRESS");
   const musdAddress = getMUSDTokenAddress();
-  const nttManager = new ethers.Contract(managerAddress, NTT_MANAGER_ABI, signer);
-  const musd = new ethers.Contract(musdAddress, ERC20_ABI, signer);
+  const nttManager = new ethers.Contract(
+    managerAddress,
+    NTT_MANAGER_ABI,
+    signer,
+  ) as unknown as NttManagerContract;
+  const musd = new ethers.Contract(
+    musdAddress,
+    ERC20_ABI,
+    signer,
+  ) as unknown as Erc20Contract;
   const recipient = encodeEvmAddress(recipientAddress);
   const refundAddress = encodeEvmAddress(signer.address);
   const transceiverInstructions = "0x";
@@ -171,11 +208,11 @@ async function executeBridge(
   try {
     await ensureAllowance(musd, managerAddress, amount);
 
-    const [, totalPrice] = (await nttManager.quoteDeliveryPrice(
+    const [, totalPrice] = await nttManager.quoteDeliveryPrice(
       destination.chainId,
       transceiverInstructions,
-    )) as [bigint[], bigint];
-    const fallbackSequence = (await nttManager.nextMessageSequence()) as bigint;
+    );
+    const fallbackSequence = await nttManager.nextMessageSequence();
 
     const transfer = nttManager.getFunction(
       "transfer(uint256,uint16,bytes32,bytes32,bool,bytes)",

@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 import BTCOracleAbi from "../../abi/BTCOracle.json";
-import { mortgageVault } from "../lib/contracts.js";
-import { onWebSocketProviderReady } from "../lib/provider.js";
-import { runHealthCheckForPosition } from "./healthCheck.js";
-import { log } from "../lib/logger.js";
+import { mortgageVault } from "../lib/contracts";
+import { onWebSocketProviderReady } from "../lib/provider";
+import { runHealthCheckForPosition } from "./healthCheck";
+import { log } from "../lib/logger";
 
 const ALERT_THRESHOLD = Number(process.env.ALERT_THRESHOLD ?? "145");
 
@@ -66,12 +66,12 @@ export function startPriceMonitor(): () => void {
 
   const unsubscribe = onWebSocketProviderReady((wsProvider) => {
     if (oracle) {
-      oracle.removeAllListeners("PriceUpdated");
+      void oracle.removeAllListeners("PriceUpdated");
     }
 
     oracle = new ethers.Contract(oracleAddress, BTCOracleAbi, wsProvider);
 
-    oracle.on("PriceUpdated", (price: bigint, timestamp: bigint) => {
+    void oracle.on("PriceUpdated", (price: bigint, timestamp: bigint) => {
       const btcPriceUSD = Number(price) / 1e8;
       log.info(`[PriceMonitor] BTC price updated: $${btcPriceUSD.toFixed(2)} at ${new Date(Number(timestamp) * 1000).toISOString()}`);
       void refreshPositionRatios(btcPriceUSD);
@@ -83,7 +83,7 @@ export function startPriceMonitor(): () => void {
   return () => {
     unsubscribe();
     if (oracle) {
-      oracle.removeAllListeners("PriceUpdated");
+      void oracle.removeAllListeners("PriceUpdated");
       oracle = null;
     }
   };

@@ -1,8 +1,8 @@
 import cron from "node-cron";
 import { ethers } from "ethers";
-import { mortgageVault, escrowController } from "../lib/contracts.js";
-import { bridgeMUSDToEncodedRecipient } from "../lib/wormhole.js";
-import { log } from "../lib/logger.js";
+import { mortgageVault, escrowController } from "../lib/contracts";
+import { bridgeMUSDToEncodedRecipient } from "../lib/wormhole";
+import { log } from "../lib/logger";
 
 function isSupportedCrossChainDestination(chain: string): boolean {
   const normalized = chain.toLowerCase();

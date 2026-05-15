@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { mortgageVault, liquidationBuffer } from "../lib/contracts.js";
-import { log } from "../lib/logger.js";
+import { mortgageVault, liquidationBuffer } from "../lib/contracts";
+import { log } from "../lib/logger";
 
 async function getOpenPositionIds(): Promise<bigint[]> {
   const filter = mortgageVault.filters["MortgageOpened"]();

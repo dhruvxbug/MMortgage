@@ -38,6 +38,16 @@ pnpm-debug.log*
 .vscode/
 .idea/
 
+# Documentation prompt files (ignore all .md except README.md)
+contracts.md
+frontend.md
+KeeperAutomation.md
+PROJECT_STATUS.md
+SYSTEM_PROMPT.md
+FoundryTests.md
+wormhole.md
+README-wormhole.md
+
 # Temporary files
 *.tmp
 *.swp

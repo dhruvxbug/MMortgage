@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { httpProvider } from "./provider.js";
-import { log } from "./logger.js";
+import { httpProvider } from "./provider";
+import { log } from "./logger";
 import MortgageVaultAbi from "../../abi/MortgageVault.json";
 import EscrowControllerAbi from "../../abi/EscrowController.json";
 import YieldRouterAbi from "../../abi/YieldRouter.json";

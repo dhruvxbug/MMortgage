@@ -1,16 +1,16 @@
 import "dotenv/config";
 import type cron from "node-cron";
 
-import { log } from "./lib/logger.js";
+import { log } from "./lib/logger";
 import {
   httpProvider,
   getWebSocketProvider,
   shutdownProviders,
-} from "./lib/provider.js";
-import { scheduleHealthCheck, runHealthCheck } from "./tasks/healthCheck.js";
-import { scheduleHarvestYield } from "./tasks/harvestYield.js";
-import { scheduleReleaseInstallment } from "./tasks/releaseInstallment.js";
-import { startPriceMonitor } from "./tasks/priceMonitor.js";
+} from "./lib/provider";
+import { scheduleHealthCheck, runHealthCheck } from "./tasks/healthCheck";
+import { scheduleHarvestYield } from "./tasks/harvestYield";
+import { scheduleReleaseInstallment } from "./tasks/releaseInstallment";
+import { startPriceMonitor } from "./tasks/priceMonitor";
 
 let shuttingDown = false;
 const scheduledTasks: cron.ScheduledTask[] = [];
