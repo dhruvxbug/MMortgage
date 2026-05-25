@@ -75,7 +75,7 @@ mezomortgage/
 
 ```bash
 # Clone
-git clone https://github.com/your-username/mezomortgage
+git clone https://github.com/dhruvxbug/MMortgage
 cd mezomortgage
 
 # Contracts
